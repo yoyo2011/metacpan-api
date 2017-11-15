@@ -2,13 +2,12 @@ package MetaCPAN::Model::Archive;
 
 use v5.10;
 use Moose;
-use MooseX::StrictConstructor;
-use MetaCPAN::Types qw(AbsFile AbsDir ArrayRef Bool);
 
-use Archive::Any;
-use Carp;
-use File::Temp  ();
-use Path::Class ();
+use Archive::Any ();
+use Carp qw( croak );
+use MetaCPAN::Types qw(AbsFile AbsDir ArrayRef Bool);
+use MooseX::StrictConstructor;
+use Path::Tiny qw( path );
 
 =head1 NAME
 
@@ -38,7 +37,7 @@ The Archive will clean up its extraction directory upon destruction.
 
 I<Required>
 
-The file to be extracted.  It will be returned as a Path::Class
+The file to be extracted.  It will be returned as a Path::Tiny
 object.
 
 =cut
@@ -69,19 +68,18 @@ has _extractor => (
 );
 
 # Holding the File::Temp::Dir object here is necessary to keep it
-# alive until the object is destroyed.  Path::Class::Dir will not hold
-# onto the ojbect.
+# alive until the object is destroyed.
 has _tempdir => (
     is       => 'ro',
-    isa      => 'File::Temp::Dir',
+    isa      => AbsDir,
     init_arg => undef,
     lazy     => 1,
     default  => sub {
 
         my $scratch_disk = '/mnt/scratch_disk';
         return -d $scratch_disk
-            ? File::Temp->newdir('/mnt/scratch_disk/tempXXXXX')
-            : File::Temp->newdir;
+            ? Path::Tiny->tempdir('/mnt/scratch_disk/tempXXXXX')
+            : Path::Tiny->tempdir;
     },
 );
 
@@ -92,7 +90,7 @@ has extract_dir => (
     coerce  => 1,
     default => sub {
         my $self = shift;
-        return Path::Class::Dir->new( $self->_tempdir );
+        return path( $self->_tempdir );
     },
 );
 
@@ -131,7 +129,7 @@ has files => (
     my $extract_dir = $archive->extract;
 
 Extract the archive into a temp directory.  The directory will be a
-L<Path::Class::Dir>.
+L<Path::Tiny> object.
 
 Only the first call to extract will perform the extraction.  After
 that it will just return the extraction directory.  If you want to

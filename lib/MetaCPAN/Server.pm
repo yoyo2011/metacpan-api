@@ -7,6 +7,7 @@ use Catalyst qw( +MetaCPAN::Role::Fastly::Catalyst );
 
 use CatalystX::RoleApplicator;
 use File::Temp qw( tempdir );
+use Path::Tiny qw( path );
 use Plack::Middleware::ReverseProxy;
 use Plack::Middleware::ServerStatus::Lite;
 use Ref::Util qw( is_arrayref );
@@ -103,8 +104,7 @@ if ( $ENV{PLACK_ENV} && $ENV{PLACK_ENV} eq 'development' ) {
         : __PACKAGE__->path_to(qw(var tmp scoreboard));
 
    # This may be a File object if it doesn't exist so change it, then make it.
-    my $dir = Path::Class::Dir->new(
-        ref $scoreboard ? $scoreboard->stringify : $scoreboard );
+    my $dir = path( ref $scoreboard ? $scoreboard->stringify : $scoreboard );
     $dir->mkpath unless -d $dir;
 
     Plack::Middleware::ServerStatus::Lite->wrap(

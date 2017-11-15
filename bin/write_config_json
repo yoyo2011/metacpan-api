@@ -12,7 +12,6 @@ use IO::All;
 use Email::Address;
 use File::Find;
 use File::Spec;
-use Path::Class;
 
 my ($dir) = @ARGV;
 

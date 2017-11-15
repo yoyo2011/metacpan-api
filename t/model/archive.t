@@ -5,21 +5,26 @@ use warnings;
 use lib 't/lib';
 
 use MetaCPAN::TestHelpers qw( fakecpan_dir );
-use Test::Most;
-use Digest::SHA qw( sha1_hex );
+use Test::Deep qw( cmp_bag );
+use Test::More;
+use Digest::SHA1 qw( sha1_hex );
+use Test::Fatal qw( exception );
 
 my $CLASS = 'MetaCPAN::Model::Archive';
 require_ok $CLASS;
 
 subtest 'missing required arguments' => sub {
-    throws_ok { $CLASS->new } qr{archive};
+    like( exception { $CLASS->new; }, qr{archive} );
 };
 
 subtest 'file does not exist' => sub {
     my $file = 'hlaglhalghalghj.blah';
-    my $archive = $CLASS->new( file => $file );
 
-    throws_ok { $archive->files } qr{$file does not exist};
+    like(
+        exception { $CLASS->new( file => $file ); },
+        qr{does not exist},
+        'exception thrown'
+    );
 };
 
 subtest 'archive extraction' => sub {
@@ -37,7 +42,7 @@ subtest 'archive extraction' => sub {
     );
 
     my $archive = $CLASS->new(
-        file => fakecpan_dir->file(
+        file => fakecpan_dir->child(
             '/authors/id/L/LO/LOCAL/Some-1.00-TRIAL.tar.gz')
     );
 
@@ -64,7 +69,7 @@ subtest 'temp cleanup' => sub {
 
     {
         my $archive = $CLASS->new(
-            file => fakecpan_dir->file(
+            file => fakecpan_dir->child(
                 'authors/id/L/LO/LOCAL/Some-1.00-TRIAL.tar.gz')
         );
 
@@ -81,7 +86,7 @@ subtest 'temp cleanup' => sub {
 
 subtest 'extract once' => sub {
     my $archive = $CLASS->new(
-        file => fakecpan_dir->file(
+        file => fakecpan_dir->child(
             'authors/id/L/LO/LOCAL/Some-1.00-TRIAL.tar.gz')
     );
 
@@ -93,20 +98,20 @@ subtest 'set extract dir' => sub {
 
     {
         my $archive = $CLASS->new(
-            file => fakecpan_dir->file(
+            file => fakecpan_dir->child(
                 'authors/id/L/LO/LOCAL/Some-1.00-TRIAL.tar.gz'),
             extract_dir => $temp->dirname
         );
 
         my $dir = $archive->extract_dir;
 
-        isa_ok $dir, 'Path::Class::Dir';
+        isa_ok $dir, 'Path::Tiny';
         is $dir,     $temp;
         is $archive->extract, $temp;
-        ok -s $dir->file('Some-1.00-TRIAL/META.json');
+        ok -s $dir->child('Some-1.00-TRIAL/META.json');
     }
 
-    ok -e $temp, q[Path::Class doesn't clean up directories it was handed];
+    ok -e $temp, q[Path::Tiny doesn't clean up directories it was handed];
 };
 
 done_testing;
