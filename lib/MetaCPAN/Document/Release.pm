@@ -102,6 +102,9 @@ B<Boolean>; Indicates whether this is the first ever release for this distributi
 
 This is an ArrayRef of modules that are included in this release.
 
+=head2 deprecated
+B<Boolean>.  Indicates whether we think this release has been deprecated.
+
 =cut
 
 has provides => (
@@ -213,6 +216,14 @@ has authorized => (
     isa      => Bool,
     default  => 1,
     writer   => '_set_authorized',
+);
+
+has deprecated => (
+    is       => 'ro',
+    required => 1,
+    isa      => Bool,
+    default  => 0,
+    writer   => '_set_deprecated',
 );
 
 has first => (

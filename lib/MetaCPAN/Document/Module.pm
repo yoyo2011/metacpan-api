@@ -94,6 +94,14 @@ has associated_pod => (
     writer   => '_set_associated_pod',
 );
 
+has deprecated => (
+    is       => 'ro',
+    required => 1,
+    isa      => Bool,
+    default  => 0,
+    writer   => '_set_deprecated',
+);
+
 has version_numified => (
     is         => 'ro',
     isa        => Num,

@@ -146,6 +146,9 @@ sub mapping {
                  "authorized" : {
                     "type" : "boolean"
                  },
+                 "deprecated" : {
+                    "type" : "boolean"
+                 },
                  "indexed" : {
                     "type" : "boolean"
                  },
