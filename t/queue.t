@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib 't/lib';
 
-use MetaCPAN::Queue;
+use MetaCPAN::Queue ();
 use Test::More;
 use Test::RequiresInternet ( 'cpan.metacpan.org' => 443 );
 
