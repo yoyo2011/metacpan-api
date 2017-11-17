@@ -53,7 +53,7 @@ subtest 'archive extraction' => sub {
 
     my $dir = $archive->extract;
     for my $file ( keys %want ) {
-        my $content = $dir->file($file)->slurp;
+        my $content = $dir->child($file)->slurp;
         if ( ref $want{$file} ) {
             like $content, $want{$file}, "content of $file";
         }
