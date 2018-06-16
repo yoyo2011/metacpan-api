@@ -57,7 +57,7 @@ before_install:
   - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/prefer_shorter_module_names_400.groovy")
   - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/status_is_latest.groovy")
   - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/score_version_numified.groovy")
-  - "$ES_DIR/bin/elasticsearch" >/dev/null &
+  - $ES_DIR/bin/elasticsearch >/dev/null &
 
   - cpanm -n Carton
   - cpanm -n App::cpm
