@@ -83,9 +83,6 @@ after_success:
 #after_failure:
 #  - cat ~/.cpanm/build.log
 
-services:
-  - elasticsearch
-
 # caching /local should save about 5 minutes in module install time
 cache:
   directories:
