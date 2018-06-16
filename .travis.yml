@@ -44,13 +44,16 @@ before_install:
   - source ~/travis-perl-helpers/init
 
   - ES_DIR="$HOME/elasticsearch"
+  - ES_SCRIPT_DIR="$ES_DIR/config/scripts"
+  - ES_SCRIPT_SOURCE=https://github.com/metacpan/metacpan-puppet/raw/master/modules/metacpan_elasticsearch/files/etc/scripts
 
+  - cpanm -n Carton
+  - cpanm -n App::cpm
+
+install:
   - mkdir "$ES_DIR"
   - (cd "$HOME"; curl -O -L https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.4.3/elasticsearch-2.4.3.tar.gz)
   - (cd "$ES_DIR"; tar -xz --strip-components=1 -f "$HOME/elasticsearch-2.4.3.tar.gz")
-
-  - ES_SCRIPT_DIR="$ES_DIR/config/scripts"
-  - ES_SCRIPT_SOURCE=https://github.com/metacpan/metacpan-puppet/raw/master/modules/metacpan_elasticsearch/files/etc/scripts
 
   - mkdir -p "$ES_SCRIPT_DIR"
   - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/prefer_shorter_module_names_100.groovy")
@@ -59,18 +62,9 @@ before_install:
   - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/score_version_numified.groovy")
   - $ES_DIR/bin/elasticsearch >/dev/null &
 
-  - cpanm -n Carton
-  - cpanm -n App::cpm
-
-  # Carton refuses to update Safe.pm to the version specified in the cpanfile and the
-  # version that's core in 5.16 is too old (it fails to work with Devel::Cover).
-  - cpanm -n Safe@2.35
-
-install:
   - AUTHOR_TESTING=0 cpm install -L $PERL_CARTON_PATH --resolver $CPAN_RESOLVER --workers $(test-jobs) || (cat ~/.perl-cpm/build.log; false)
 
 before_script:
-  - "perl -i -pe 's/(servers :)9900/localhost:9200/' metacpan_server_testing.conf"
   - wget -q --waitretry=1 --retry-connrefused -T 10 -O - http://127.0.0.1:9200
   - coverage-setup
 
@@ -80,7 +74,8 @@ script:
 after_success:
   - coverage-report
 
-#after_failure:
+after_failure:
+  - cat "$ES_DIR/logs/elasticsearch.log"
 #  - cat ~/.cpanm/build.log
 
 # caching /local should save about 5 minutes in module install time
