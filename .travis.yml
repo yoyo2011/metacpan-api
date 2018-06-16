@@ -10,6 +10,7 @@ notifications:
     on_failure: always
   irc: "irc.perl.org#metacpan-travis"
 
+sudo: false
 env:
   global:
     # We use a non-standard port to avoid trashing production
@@ -42,22 +43,21 @@ before_install:
   - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
   - source ~/travis-perl-helpers/init
 
-  - sudo mkdir -p /etc/elasticsearch/scripts/ && sudo mkdir /tmp/es && sudo chmod 777 /tmp/es
+  - ES_DIR="$HOME/elasticsearch"
 
-  - sudo curl -O -L https://github.com/metacpan/metacpan-puppet/raw/master/modules/metacpan_elasticsearch/files/etc/scripts/prefer_shorter_module_names_100.groovy > /tmp/es/prefer_shorter_module_names_100.groovy
+  - mkdir "$ES_DIR"
+  - (cd "$HOME"; curl -O -L https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.4.3/elasticsearch-2.4.3.tar.gz)
+  - (cd "$ES_DIR"; tar -xz --strip-components=1 -f "$HOME/elasticsearch-2.4.3.tar.gz")
 
-  - sudo curl -O -L https://github.com/metacpan/metacpan-puppet/raw/master/modules/metacpan_elasticsearch/files/etc/scripts/prefer_shorter_module_names_400.groovy > /tmp/es/prefer_shorter_module_names_400.groovy
+  - ES_SCRIPT_DIR="$ES_DIR/config/scripts"
+  - ES_SCRIPT_SOURCE=https://github.com/metacpan/metacpan-puppet/raw/master/modules/metacpan_elasticsearch/files/etc/scripts
 
-  - sudo curl -O -L https://github.com/metacpan/metacpan-puppet/raw/master/modules/metacpan_elasticsearch/files/etc/scripts/status_is_latest.groovy > /tmp/es/status_is_latest.groovy
-
-  - sudo curl -O -L https://github.com/metacpan/metacpan-puppet/raw/master/modules/metacpan_elasticsearch/files/etc/scripts/score_version_numified.groovy > /tmp/es/score_version_numified.groovy
-
-  - sudo cp /tmp/es/* /etc/elasticsearch/scripts/
-
-  - sudo service elasticsearch stop && curl -O -L https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-2.4.3.deb && sudo dpkg -i --force-confnew elasticsearch-2.4.3.deb && sudo service elasticsearch start
-
-  - sudo service elasticsearch stop && curl -O -L https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-2.4.3.deb && sudo dpkg -i --force-confnew elasticsearch-2.4.3.deb && sudo service elasticsearch start
-  - sudo service elasticsearch restart
+  - mkdir -p "$ES_SCRIPT_DIR"
+  - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/prefer_shorter_module_names_100.groovy")
+  - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/prefer_shorter_module_names_400.groovy")
+  - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/status_is_latest.groovy")
+  - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/score_version_numified.groovy")
+  - "$ES_DIR/bin/elasticsearch" >/dev/null &
 
   - cpanm -n Carton
   - cpanm -n App::cpm
@@ -71,7 +71,7 @@ install:
 
 before_script:
   - "perl -i -pe 's/(servers :)9900/localhost:9200/' metacpan_server_testing.conf"
-  - bin/wait-for-open http://localhost:9200/
+  - wget -q --waitretry=1 --retry-connrefused -T 10 -O - http://127.0.0.1:9200
   - coverage-setup
 
 script:
