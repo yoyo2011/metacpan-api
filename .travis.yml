@@ -60,7 +60,7 @@ install:
   - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/prefer_shorter_module_names_400.groovy")
   - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/status_is_latest.groovy")
   - (cd "$ES_SCRIPT_DIR"; curl -O -L "$ES_SCRIPT_SOURCE/score_version_numified.groovy")
-  - ( $ES_DIR/bin/elasticsearch; echo "exit code: $?" ) >/tmp/es.log 2>&1 &
+  - "( $ES_DIR/bin/elasticsearch; echo \"exit code: $?\" ) >/tmp/es.log 2>&1 &"
 
   - AUTHOR_TESTING=0 cpm install -L $PERL_CARTON_PATH --resolver $CPAN_RESOLVER --workers $(test-jobs) || (cat ~/.perl-cpm/build.log; false)
 
